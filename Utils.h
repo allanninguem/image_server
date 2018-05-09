@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <strings.h>
 
 #include <PvDevice.h>
 #include <PvDeviceGEV.h>
@@ -29,14 +30,15 @@
 #define BUFFER_COUNT 16
 #define CAM_IP "10.194.64.117"
 #define COUNTER_FILE "counter.txt"
-
+#define MAX_IMG_W 1280
+#define MAX_IMG_H 512
 
 
 void logPrintf(const char *level, const char *msg);
 void logError(const char *level, const char *msg);
 int loadCounter();
 void writeCounter(int imageCounter);
-
+void fillBuffer(uint8_t *buffer, int imageSizeW, int imageSizeH);
 
 // MyPipelineEventSink class
 

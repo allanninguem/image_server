@@ -27,6 +27,19 @@ void writeCounter(int imageCounter) {
 
 
 
+void fillBuffer(uint8_t *buffer, int imageSizeW, int imageSizeH) {
+
+    logPrintf("UTILS","filling initial buffer");
+
+    buffer = new uint8_t[imageSizeW*imageSizeH];
+
+    for (int i=0; i<imageSizeW*imageSizeH; i++) {
+        buffer[i] = 0;
+    }
+}
+
+
+
 // MyPipelineEventSink class
 
 void MyPipelineEventSink::OnBufferReady(PvPipeline *aPipeline) {

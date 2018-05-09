@@ -104,7 +104,8 @@ PvPipeline *CreatePipeline( PvDevice *aDevice, PvStream *aStream )
 
 
 
-void waitForBufferReady(MyPipelineEventSink *lMyPipelineEventSink) {
+void waitForBufferReady(MyPipelineEventSink *lMyPipelineEventSink)
+{
     while (!lMyPipelineEventSink->isReady) {
         usleep(1);
     }
@@ -112,7 +113,7 @@ void waitForBufferReady(MyPipelineEventSink *lMyPipelineEventSink) {
 
 
 
-void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink)
+void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer)
 {
 
 
