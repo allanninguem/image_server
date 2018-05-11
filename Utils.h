@@ -2,6 +2,7 @@
 #define __UTILS_H__
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
 #include <strings.h>
@@ -16,6 +17,7 @@
 #include <PvBuffer.h>
 #include <PvBufferWriter.h>
 
+#include "zlib.h"
 
 
 #define KNRM  "\x1B[0m"
@@ -33,12 +35,20 @@
 #define MAX_IMG_W 1280
 #define MAX_IMG_H 512
 
+// zlib stuff
+#define WINDOWS_BITS 15
+#define GZIP_ENCODING 16
+
 
 void logPrintf(const char *level, const char *msg);
 void logError(const char *level, const char *msg);
 int loadCounter();
 void writeCounter(int imageCounter);
-void fillBuffer(uint8_t *buffer, int imageSizeW, int imageSizeH);
+void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH);
+void compressMainBufferRawImage(uint8_t *buffer, int bufferSize, uint8_t *outputBuffer, int *outputBufferSize);
+void saveBufferRawImage(uint8_t *buffer, int W, int H);
+
+
 
 // MyPipelineEventSink class
 

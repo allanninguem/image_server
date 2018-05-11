@@ -113,7 +113,7 @@ void waitForBufferReady(MyPipelineEventSink *lMyPipelineEventSink)
 
 
 
-void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer)
+void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer, int &imageSizeW, int &imageSizeH)
 {
 
 
@@ -180,7 +180,12 @@ void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline,
                 lWidth = lImage->GetWidth();
                 lHeight = lImage->GetHeight();
 
-                saveBuffer(lBuffer);
+                imageSizeW = lWidth;
+                imageSizeH = lHeight;
+                memcpy(imageBuffer, lBuffer->GetDataPointer(), imageSizeW*imageSizeH);
+
+
+                //saveBuffer(lBuffer);
 
             } else {
                 logError("IMG_ACQ","Buffer does not contain image");

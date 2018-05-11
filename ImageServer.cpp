@@ -7,8 +7,11 @@
 #define CMD_BUFFER_SIZE 1024
 
 uint8_t *mainImageBuffer;
+int mainImageW;
+int mainImageH;
 char mainCmdBuffer[CMD_BUFFER_SIZE];
 char mainResultBuffer[RX_BUFFER_SIZE];
+int imageCounter;
 
 int main()
 {
@@ -22,12 +25,11 @@ int main()
 
 
     strcpy(mainCmdBuffer, "temperatures\n");
-
     
 
     logPrintf("MAIN","Image Server");
 
-    fillBuffer(mainImageBuffer, MAX_IMG_W, MAX_IMG_H);
+    fillBuffer(&mainImageBuffer, MAX_IMG_W, MAX_IMG_H);
 
     PvString lConnectionID = CAM_IP;
     lDevice = ConnectToDevice( lConnectionID );
@@ -62,16 +64,36 @@ int main()
                         if (lPort) {
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                             for (int i=0; i<5; i++) {
 
                                 clock_t begin = clock();
 
-                                AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer);
+                                // aquire image into main buffer
+                                // TODO: return false on error
+                                printf("%x\n", mainImageBuffer);
+                                AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageW, mainImageH );
 
+                                // saves output/imgxx.raw.gz
+                                saveBufferRawImage(mainImageBuffer, mainImageW, mainImageH);
+
+                                // sends mainCmdBuffer to camera serial interface
                                 SendCommand(lPort, mainCmdBuffer);
                                 
                                 usleep(1000);
 
+                                // receive camera serial interface response
                                 ReceiveResult(lPort, mainResultBuffer);
                                 printf("%s\n",mainResultBuffer);
 
@@ -81,6 +103,18 @@ int main()
                                 printf("(%.4f)\n",elapsed_secs);
 
                             }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                             lPort->Close();
@@ -94,7 +128,6 @@ int main()
                             delete lMyPipelineEventSink;
 
                             // Close the stream
-                            logPrintf("MAIN","Problem registerig sink");
                             lStream->Close();
                             PvStream::Free( lStream );
 
@@ -130,6 +163,10 @@ int main()
     } else {
         logError("MAIN","Problem opening device");
     }
+
+
+    if (mainImageBuffer)
+        free(mainImageBuffer);
 
 
     return 0;

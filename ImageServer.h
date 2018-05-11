@@ -13,6 +13,9 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 
 #endif // __IMAGESERVER_H__
