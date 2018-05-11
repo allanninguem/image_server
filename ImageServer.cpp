@@ -35,6 +35,7 @@ int main()
     PvDeviceAdapter *lDeviceAdapter = NULL;
     PvDeviceSerialPort *lPort = NULL;
 
+    int errorState;
 
 
     strcpy(mainCmdBuffer, "temperatures\n");
@@ -68,11 +69,11 @@ int main()
 
                 if ( lResult.IsOK() ) {
 
-                    lDeviceAdapter = CreateDeviceAdapter(lDevice);
+                    lDeviceAdapter = CreateCameraDeviceAdapter(lDevice);
 
                     if (lDeviceAdapter) {
 
-                        lPort = ConfigureSerial(lDevice, lDeviceAdapter);
+                        lPort = ConfigureCameraSerial(lDevice, lDeviceAdapter);
 
                         if (lPort) {
 
@@ -99,7 +100,7 @@ int main()
                                             if (n > 0) {
 
 
-                                                printf(readSocketBuffer);
+                                                printf("%s\n",readSocketBuffer);
 
 
                                                 if (strcmp(readSocketBuffer,"quit")==0) { 
@@ -130,7 +131,7 @@ int main()
                                                 } else if (strcmp(readSocketBuffer,"get img")==0) {
 
                                                     AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
-                                                    int errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
+                                                    errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
 
                                                     if (errorState) {
                                                         logError("MAIN","Sending image failure");
@@ -143,16 +144,73 @@ int main()
 
 
 
+
+                                                } else if (strcmp(readSocketBuffer,"get n img")==0) {
+                                                    n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
+                                                    if (n < 0) {
+
+                                                        logError("MAIN","ERROR reading from socket");
+
+                                                    } else {
+                                                    
+                                                        int nImgs = 0;
+                                                        sscanf(readSocketBuffer, "%d", &nImgs);
+
+                                                        for (int i = 0; i < nImgs; ++i)
+                                                        {
+                                                            AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
+                                                            errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
+
+                                                            if (errorState) {
+                                                                logError("MAIN","Sending image failure");
+                                                            }
+                                                        }
+
+
+                                                    }
+
+
+
+
+
+
+
+
+
+                                                    } else if (strcmp(readSocketBuffer,"get serial")==0) {
+
+                                                        // send cmdBuffer to camera serial interface
+                                                        SendCameraCommand(lPort, mainCmdBuffer);
+
+                                                        // receive camera serial interface response
+                                                        ReceiveCameraResult(lPort, mainResultBuffer);
+                                                        
+                                                        errorState = SendResultBuffer(socketClient, mainResultBuffer);
+                                                        if (errorState) 
+                                                            logError("MAIN","ERROR writing to socket");
+
+                                                        addLogLine(clientAddr, mainResultBuffer);
+
+
+
+
+
+
+
+
+
+
                                                 } else if (strcmp(readSocketBuffer,"set serial")==0) {
 
-                                                    n = read(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
+                                                    n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
                                                     if (n < 0) {
 
                                                         logError("MAIN","ERROR reading from socket");
 
                                                     } else {
 
-                                                        memcpy(mainCmdBuffer, readSocketBuffer, strlen(readSocketBuffer)+1);
+                                                        // set mainCmdBuffer to what came form serial
+                                                        sprintf(mainCmdBuffer, "%s\r\n", readSocketBuffer);
 
                                                         addLogLine(clientAddr, readSocketBuffer);
 
@@ -219,12 +277,12 @@ int main()
                                 saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
 
                                 // sends mainCmdBuffer to camera serial interface
-                                SendCommand(lPort, mainCmdBuffer);
+                                SendCameraCommand(lPort, mainCmdBuffer);
                                 
                                 usleep(1000);
 
                                 // receive camera serial interface response
-                                ReceiveResult(lPort, mainResultBuffer);
+                                ReceiveCameraResult(lPort, mainResultBuffer);
                                 printf("%s\n",mainResultBuffer);
 
 
