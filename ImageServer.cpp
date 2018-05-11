@@ -189,7 +189,10 @@ int main()
                                                         if (errorState) 
                                                             logError("MAIN","ERROR writing to socket");
 
-                                                        addLogLine(clientAddr, mainResultBuffer);
+                                                        addLogLine(clientAddr, mainCmdBuffer, mainResultBuffer);
+                                                        
+                                                        mainCmdBuffer[0] = 0;
+                                                        mainResultBuffer[0] = 0;
 
 
 
@@ -211,8 +214,6 @@ int main()
 
                                                         // set mainCmdBuffer to what came form serial
                                                         sprintf(mainCmdBuffer, "%s\r\n", readSocketBuffer);
-
-                                                        addLogLine(clientAddr, readSocketBuffer);
 
                                                     }
 

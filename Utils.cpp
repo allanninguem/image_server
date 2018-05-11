@@ -40,7 +40,7 @@ void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH) {
 
 
 
-void addLogLine(struct sockaddr_in  cliAddr, char *cmd) {
+void addLogLine(struct sockaddr_in  cliAddr, char *cmd, char *result) {
     char *ipStr;
     char *timeStr;
     time_t rawtime;
@@ -58,9 +58,13 @@ void addLogLine(struct sockaddr_in  cliAddr, char *cmd) {
 
     ipStr[strcspn(ipStr, "\r\n")] = 0;
     timeStr[strcspn(timeStr, "\r\n")] = 0;
-    cmd[strcspn(cmd, "\r\n")] = 0;
-
-    fprintf(fid,"%s, %s, %s\n",ipStr, cmd, timeStr);
+/*
+    int pos;
+    int len = strlen(cmd);
+    while ((pos = strcspn(cmd, "\r\n"))<len)
+        if (pos<len) cmd[pos] = ';';
+*/
+    fprintf(fid,"IP: %s\nDate time: %s\ncommand: %s\nresult: %s\n",ipStr, timeStr, cmd, result);
 
     fclose(fid);
 }

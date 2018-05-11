@@ -53,7 +53,7 @@ void writeCounter(int imageCounter);
 void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH);
 void compressMainBufferRawImage(uint8_t *buffer, int bufferSize, uint8_t *outputBuffer, int *outputBufferSize);
 void saveBufferRawImage(uint8_t *buffer, int W, int H);
-void addLogLine(struct sockaddr_in  cliAddr, char *cmd);
+void addLogLine(struct sockaddr_in  cliAddr, char *cmd, char *result);
 
 
 
