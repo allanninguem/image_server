@@ -1,7 +1,7 @@
 #include "ImageServer.h"
 #include "Utils.h"
 #include "ImageAcquisition.h"
-#include "SerialServer.h"
+#include "SerialComm.h"
 
 #define RX_BUFFER_SIZE 1024
 #define CMD_BUFFER_SIZE 1024
