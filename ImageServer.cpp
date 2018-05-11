@@ -9,8 +9,8 @@
 
 
 uint8_t *mainImageBuffer;
-int mainImageW;
-int mainImageH;
+int mainImageSizeW;
+int mainImageSizeH;
 char mainCmdBuffer[CMD_BUFFER_SIZE];
 char mainResultBuffer[RX_BUFFER_SIZE];
 int imageCounter;
@@ -117,7 +117,12 @@ int main()
 
                                                 } else if (strcmp(readSocketBuffer,"get img")==0) {
 
-                                                    printf("will get an image\n");
+                                                    AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
+                                                    int errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
+
+                                                    if (errorState) {
+                                                        logError("MAIN","Sending image failure");
+                                                    }
 
                                                 }
 
@@ -136,8 +141,12 @@ int main()
 
                                         close(socketClient);
 
+                                    } else {
+                                        logError("MAIN","Socket connection error");
                                     }
 
+                                } else {
+                                    logError("MAIN","Socket server error");
                                 }
 
                             }
@@ -164,11 +173,10 @@ int main()
 
                                 // aquire image into main buffer
                                 // TODO: return false on error
-                                printf("%x\n", mainImageBuffer);
-                                AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageW, mainImageH );
+                                AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
 
                                 // saves output/imgxx.raw.gz
-                                saveBufferRawImage(mainImageBuffer, mainImageW, mainImageH);
+                                saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
 
                                 // sends mainCmdBuffer to camera serial interface
                                 SendCommand(lPort, mainCmdBuffer);
