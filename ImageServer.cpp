@@ -20,6 +20,7 @@ int imageCounter;
 #define READ_BUFFER_SIZE 1024
 
 int socketServer, socketClient;
+struct sockaddr_in clientAddr;
 char readSocketBuffer[READ_BUFFER_SIZE];
 int keepServing = 1;
 int keepConnected = 1;
@@ -83,7 +84,7 @@ int main()
                             while (keepServing) {
 
                                 if (socketServer>0) {
-                                    socketClient = waitForConnection(socketServer);
+                                    socketClient = waitForConnection(socketServer, clientAddr);
 
                                     if (socketClient>0) {
                                         logPrintf("MAIN","connection OK!");
@@ -107,12 +108,23 @@ int main()
 
                                                     keepConnected = 0;
 
+
+
+
+
+
                                                 } else if (strcmp(readSocketBuffer,"stop")==0) {
 
                                                     // quit everything 
 
                                                     keepConnected = 0;
                                                     keepServing = 0;
+
+
+
+
+
+
 
 
                                                 } else if (strcmp(readSocketBuffer,"get img")==0) {
@@ -124,12 +136,40 @@ int main()
                                                         logError("MAIN","Sending image failure");
                                                     }
 
+
+
+
+
+
+
+
+                                                } else if (strcmp(readSocketBuffer,"set serial")==0) {
+
+                                                    n = read(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
+                                                    if (n < 0) {
+
+                                                        logError("MAIN","ERROR reading from socket");
+
+                                                    } else {
+
+                                                        memcpy(mainCmdBuffer, readSocketBuffer, strlen(readSocketBuffer)+1);
+
+                                                        addLogLine(clientAddr, readSocketBuffer);
+
+                                                    }
+
+
+
                                                 }
+
+
+
+
 
 
                                             } else {
 
-                                                logError("SERVER","ERROR reading from socket");
+                                                logError("MAIN","ERROR reading from socket");
 
                                             }
 

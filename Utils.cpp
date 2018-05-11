@@ -40,6 +40,34 @@ void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH) {
 
 
 
+void addLogLine(struct sockaddr_in  cliAddr, char *cmd) {
+    char *ipStr;
+    char *timeStr;
+    time_t rawtime;
+    struct tm *timeinfo;
+    
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    
+    ipStr = inet_ntoa(cliAddr.sin_addr);
+
+    timeStr = asctime(timeinfo);
+
+    FILE *fid = fopen("log.txt","a");
+
+
+    ipStr[strcspn(ipStr, "\r\n")] = 0;
+    timeStr[strcspn(timeStr, "\r\n")] = 0;
+    cmd[strcspn(cmd, "\r\n")] = 0;
+
+    fprintf(fid,"%s, %s, %s\n",ipStr, cmd, timeStr);
+
+    fclose(fid);
+}
+
+
+
+
 void compressMainBufferRawImage(uint8_t *buffer, int bufferSize, uint8_t *outputBuffer, int *outputBufferSize) {
 
 

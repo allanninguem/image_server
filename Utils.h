@@ -5,7 +5,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include <strings.h>
+#include <string.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 
 #include <PvDevice.h>
 #include <PvDeviceGEV.h>
@@ -47,6 +53,7 @@ void writeCounter(int imageCounter);
 void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH);
 void compressMainBufferRawImage(uint8_t *buffer, int bufferSize, uint8_t *outputBuffer, int *outputBufferSize);
 void saveBufferRawImage(uint8_t *buffer, int W, int H);
+void addLogLine(struct sockaddr_in  cliAddr, char *cmd);
 
 
 
