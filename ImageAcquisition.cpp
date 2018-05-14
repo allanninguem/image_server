@@ -14,18 +14,12 @@ void saveBuffer(PvBuffer *lBuffer) {
     snprintf( fileName, 255, "output/img%04d.tiff", imageCounter );
 
     lResult = lBufferWriter->Store(lBuffer, fileName, PvBufferFormatTIFF, NULL);
-    if ( !lResult.IsOK() )
-    {
-        logError("IMG_ACQ","Problem saving image");
-        return;
-    } else {
+    if ( lResult.IsOK() ) {
 
         imageCounter++;
         writeCounter(imageCounter);
 
-        logPrintf("IMG_ACQ","Image saved");
     }
-
 
     delete lBufferWriter;
 }
@@ -39,12 +33,8 @@ PvDevice *ConnectToDevice( const PvString &aConnectionID )
     PvResult lResult;
 
     // Connect to the GigE Vision or USB3 Vision device
-    logPrintf("IMG_ACQ","Connecting to device");
+
     lDevice = PvDevice::CreateAndConnect( aConnectionID, &lResult );
-    if ( lDevice == NULL )
-    {
-        logError("IMG_ACQ","Unable to connect to device");
-    }
 
     return lDevice;
 }
@@ -55,12 +45,8 @@ PvStream *OpenStream( const PvString &aConnectionID )
     PvResult lResult;
 
     // Open stream to the GigE Vision or USB3 Vision device
-    logPrintf("IMG_ACQ","Opening stream from device");
+
     lStream = PvStream::CreateAndOpen( aConnectionID, &lResult );
-    if ( lStream == NULL )
-    {
-        logError("IMG_ACQ","Unable to stream from device");
-    }
 
     return lStream;
 }
@@ -113,9 +99,9 @@ void waitForBufferReady(MyPipelineEventSink *lMyPipelineEventSink)
 
 
 
-void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer, int &imageSizeW, int &imageSizeH)
+int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer, int &imageSizeW, int &imageSizeH)
 {
-
+    int errorState = 0;
 
 
     // Get device parameters need to control streaming
@@ -127,18 +113,14 @@ void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline,
 
 
     // Note: the pipeline must be initialized before we start acquisition
-    logPrintf("IMG_ACQ","Starting pipeline");
     aPipeline->Start();
 
     // Enable streaming and send the AcquisitionStart command
-    logPrintf("IMG_ACQ","Enabling streaming and sending AcquisitionStart command");
     aDevice->StreamEnable();
     aStart->Execute();
 
 
-    logPrintf("IMG_ACQ","Waitng for buffer to fill...");
     waitForBufferReady(lMyPipelineEventSink);
-
 
 
     PvBuffer *lBuffer = NULL;
@@ -151,11 +133,8 @@ void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline,
 
     if ( lResult.IsOK() )
     {
-        logPrintf("IMG_ACQ","Buffer Retrieved (result ok)");
         if ( lOperationResult.IsOK() )
         {
-        	logPrintf("IMG_ACQ","Buffer Retrieved (operation ok)");
-
             PvPayloadType lType;
 
             //
@@ -170,8 +149,6 @@ void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline,
 
             if ( lType == PvPayloadTypeImage )
             {
-
-                logPrintf("IMG_ACQ","image received");
 
                 // Get image specific buffer interface.
                 PvImage *lImage = lBuffer->GetImage();
@@ -188,13 +165,14 @@ void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline,
                 //saveBuffer(lBuffer);
 
             } else {
-                logError("IMG_ACQ","Buffer does not contain image");
+                errorState = 1;
+                //logError("IMG_ACQ","Buffer does not contain image");
             }
         }
         else
         {
-            logError("IMG_ACQ","Buffer Retrieved ERROR! (Operation)");
-            // Non OK operational result
+            errorState = 1;
+            //logError("IMG_ACQ","Buffer Retrieved ERROR! (Operation)");
         }
 
         // Release the buffer back to the pipeline
@@ -202,20 +180,18 @@ void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline,
     }
     else
     {
-        logError("IMG_ACQ","Buffer Retrieved ERROR! (result)");
+        errorState = 1;
+        //logError("IMG_ACQ","Buffer Retrieved ERROR! (result)");
     }
 
 
     // Tell the device to stop sending images.
-    logPrintf("IMG_ACQ","Sending AcquisitionStop command to the device");
     aStop->Execute();
 
     // Disable streaming on the device
-    logPrintf("IMG_ACQ","Disable streaming on the controller");
     aDevice->StreamDisable();
 
     // Stop the pipeline
-    logPrintf("IMG_ACQ","Stoping pipeline");
     aPipeline->Stop();
     
 }

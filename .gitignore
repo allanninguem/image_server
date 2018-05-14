@@ -1,0 +1,4 @@
+log.txt
+output/*.gz
+*.o
+image_server

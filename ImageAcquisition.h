@@ -24,6 +24,6 @@ PvStream *OpenStream( const PvString &aConnectionID );
 void ConfigureStream( PvDevice *aDevice, PvStream *aStream );
 PvPipeline *CreatePipeline( PvDevice *aDevice, PvStream *aStream );
 void waitForBufferReady(MyPipelineEventSink *lMyPipelineEventSink);
-void AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer, int &imageSizeW, int &imageSizeH);
+int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer, int &imageSizeW, int &imageSizeH);
 
 #endif // __IMAGEACQUISITION_H__

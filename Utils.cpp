@@ -29,8 +29,6 @@ void writeCounter(int imageCounter) {
 
 void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH) {
 
-    logPrintf("UTILS","filling initial buffer");
-
     buffer[0] = new uint8_t[imageSizeW*imageSizeH];
 
     for (int i=0; i<imageSizeW*imageSizeH; i++) {
@@ -40,7 +38,7 @@ void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH) {
 
 
 
-void addLogLine(struct sockaddr_in  cliAddr, char *cmd, char *result) {
+void addLogLine(struct sockaddr_in  cliAddr, const char *level, char *cmd, char *result) {
     char *ipStr;
     char *timeStr;
     time_t rawtime;
@@ -64,7 +62,7 @@ void addLogLine(struct sockaddr_in  cliAddr, char *cmd, char *result) {
     while ((pos = strcspn(cmd, "\r\n"))<len)
         if (pos<len) cmd[pos] = ';';
 */
-    fprintf(fid,"IP: %s\nDate time: %s\ncommand: %s\nresult: %s\n",ipStr, timeStr, cmd, result);
+    fprintf(fid,"Level: %s\nIP: %s\nDate time: %s\ncommand: %s\nresult: %s\n",level,ipStr, timeStr, cmd, result);
 
     fclose(fid);
 }
@@ -121,8 +119,6 @@ void saveBufferRawImage(uint8_t *buffer, int W, int H) {
     imageCounter++;
     writeCounter(imageCounter);
 
-    logPrintf("UTILS","Image saved");
-
 }
 
 
@@ -140,7 +136,7 @@ void saveBufferRawImage(uint8_t *buffer, int W, int H) {
 
 void MyPipelineEventSink::OnBufferReady(PvPipeline *aPipeline) {
     this->isReady = 1;
-    printf("Buffer ready!\n");
+    //printf("Buffer ready!\n");
 }
 
 void MyPipelineEventSink::OnStop(PvPipeline *aPipeline)  {
