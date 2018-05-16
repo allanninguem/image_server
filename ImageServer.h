@@ -1,6 +1,7 @@
 #ifndef __IMAGESERVER_H__
 #define __IMAGESERVER_H__
 
+#include <PvSampleUtils.h>
 #include <PvDevice.h>
 #include <PvDeviceGEV.h>
 #include <PvDeviceU3V.h>
@@ -15,7 +16,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-
 
 
 #endif // __IMAGESERVER_H__

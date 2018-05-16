@@ -7,6 +7,8 @@
 #define RX_BUFFER_SIZE 1024
 #define CMD_BUFFER_SIZE 1024
 
+int gStop; // This if for PvSampleUtils.h 
+
 
 uint8_t *mainImageBuffer;
 int mainImageSizeW;
@@ -46,86 +48,88 @@ int main()
     fillBuffer(&mainImageBuffer, MAX_IMG_W, MAX_IMG_H);
 
     PvString lConnectionID = CAM_IP;
-    lDevice = ConnectToDevice( lConnectionID );
-    if ( lDevice != NULL ) {
-        logPrintf("MAIN","Conected to device");
+    
+    if ( PvSelectDevice( &lConnectionID ) ) {
 
+        lDevice = ConnectToDevice( lConnectionID );
+        if ( lDevice != NULL ) {
+            logPrintf("MAIN","Conected to device");
 
-        lStream = OpenStream( lConnectionID );
-        if ( lStream != NULL ) {
-            logPrintf("MAIN","Stream open");
 
+            lStream = OpenStream( lConnectionID );
+            if ( lStream != NULL ) {
+                logPrintf("MAIN","Stream open");
 
-            PvPipeline *lPipeline = NULL;
-            ConfigureStream( lDevice, lStream );
 
+                PvPipeline *lPipeline = NULL;
+                ConfigureStream( lDevice, lStream );
 
-            lPipeline = CreatePipeline( lDevice, lStream );
-            if( lPipeline != NULL ) {
-                logPrintf("MAIN","Pipeline OK");
 
-                MyPipelineEventSink *lMyPipelineEventSink = new MyPipelineEventSink();
-                PvResult lResult = lPipeline->RegisterEventSink((PvPipelineEventSink *)lMyPipelineEventSink);
+                lPipeline = CreatePipeline( lDevice, lStream );
+                if( lPipeline != NULL ) {
+                    logPrintf("MAIN","Pipeline OK");
 
-                if ( lResult.IsOK() ) {
-                    logPrintf("MAIN","Fill buffer event ok!");
+                    MyPipelineEventSink *lMyPipelineEventSink = new MyPipelineEventSink();
+                    PvResult lResult = lPipeline->RegisterEventSink((PvPipelineEventSink *)lMyPipelineEventSink);
 
-                    lDeviceAdapter = CreateCameraDeviceAdapter(lDevice);
+                    if ( lResult.IsOK() ) {
+                        logPrintf("MAIN","Fill buffer event ok!");
 
-                    if (lDeviceAdapter) {
-                        logPrintf("MAIN","Camera Serial device ok!");
+                        lDeviceAdapter = CreateCameraDeviceAdapter(lDevice);
 
-                        lPort = ConfigureCameraSerial(lDevice, lDeviceAdapter);
+                        if (lDeviceAdapter) {
+                            logPrintf("MAIN","Camera Serial device ok!");
 
-                        if (lPort) {
-                            logPrintf("MAIN","Camera Serial port ok!");
+                            lPort = ConfigureCameraSerial(lDevice, lDeviceAdapter);
 
+                            if (lPort) {
+                                logPrintf("MAIN","Camera Serial port ok!");
 
-                            socketServer = initServer(SOCKET_SERVER_PORT);
 
+                                socketServer = initServer(SOCKET_SERVER_PORT);
 
-                            while (keepServing) {
 
-                                if (socketServer>0) {
-                                    socketClient = waitForConnection(socketServer, clientAddr);
+                                while (keepServing) {
 
-                                    if (socketClient>0) {
-                                        logPrintf("MAIN","connection OK!");
+                                    if (socketServer>0) {
+                                        socketClient = waitForConnection(socketServer, clientAddr);
 
+                                        if (socketClient>0) {
+                                            logPrintf("MAIN","connection OK!");
 
-                                        while (keepConnected) {
 
-                                            logPrintf("MAIN","Wait for another command");
+                                            while (keepConnected) {
 
+                                                logPrintf("MAIN","Wait for another command");
 
-                                            int n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
-                                            if (n > 0) {
 
+                                                int n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
+                                                if (n > 0) {
 
-                                                printf("%s\n",readSocketBuffer);
-                                                addLogLine(clientAddr, "SERVER", readSocketBuffer, mainResultBuffer);
 
+                                                    printf("%s\n",readSocketBuffer);
+                                                    addLogLine(clientAddr, "SERVER", readSocketBuffer, mainResultBuffer);
 
-                                                if (strcmp(readSocketBuffer,"quit")==0) { 
-                                                    logPrintf("MAIN","Closing this connection");
 
-                                                    // quit this connection
+                                                    if (strcmp(readSocketBuffer,"quit")==0) { 
+                                                        logPrintf("MAIN","Closing this connection");
 
-                                                    keepConnected = 0;
+                                                        // quit this connection
 
+                                                        keepConnected = 0;
 
 
 
 
 
-                                                } else if (strcmp(readSocketBuffer,"stop")==0) {
-                                                    logPrintf("MAIN","Closing everying and exit");
 
-                                                    // quit everything 
+                                                    } else if (strcmp(readSocketBuffer,"stop")==0) {
+                                                        logPrintf("MAIN","Closing everying and exit");
 
-                                                    keepConnected = 0;
-                                                    keepServing = 0;
+                                                        // quit everything 
 
+                                                        keepConnected = 0;
+                                                        keepServing = 0;
 
 
 
@@ -133,102 +137,23 @@ int main()
 
 
 
-                                                } else if (strcmp(readSocketBuffer,"get img")==0) {
-                                                    logPrintf("MAIN","Will send an image");
 
-                                                    errorState = AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
+                                                    } else if (strcmp(readSocketBuffer,"get img")==0) {
+                                                        logPrintf("MAIN","Will send an image");
 
-                                                    if (!errorState) {
-                                                        saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
-
-                                                        errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
-
-                                                        if (errorState) {
-                                                            logError("MAIN","Sending image failure");
-                                                        }
-
-                                                    } else {
-                                                        logError("MAIN","Image acquisition error");
-                                                    }
-
-
-
-
-
-
-
-
-
-
-                                                } else if (strcmp(readSocketBuffer,"get n img")==0) {
-                                                    logPrintf("MAIN","Will send n images");
-
-                                                    n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
-                                                    if (n < 0) {
-
-                                                        logError("MAIN","ERROR reading from socket");
-
-                                                    } else {
-                                                    
-                                                        int nImgs = 0;
-                                                        sscanf(readSocketBuffer, "%d", &nImgs);
-
-                                                        for (int i = 0; i < nImgs; ++i)
-                                                        {
-                                                            errorState = AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
-
-                                                            if (!errorState) {
-
-                                                                if (i==0) saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
-
-                                                                errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
-
-                                                                if (errorState) {
-                                                                    logError("MAIN","Sending image failure");
-                                                                }
-                                                            } else {
-                                                                logError("MAIN","Image acquisition error");
-                                                            }
-                                                        }
-
-
-                                                    }
-
-
-
-
-
-
-
-
-
-                                                    } else if (strcmp(readSocketBuffer,"get serial")==0) {
-
-                                                        // send cmdBuffer to camera serial interface
-                                                        errorState = SendCameraCommand(lPort, mainCmdBuffer);
+                                                        errorState = AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
 
                                                         if (!errorState) {
-                                                            // receive camera serial interface response
-                                                            errorState = ReceiveCameraResult(lPort, mainResultBuffer);
+                                                            saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
 
-                                                            if (!errorState) {
+                                                            errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
 
-                                                                errorState = SendResultBuffer(socketClient, mainResultBuffer);
-                                                                if (errorState) {
-                                                                    logError("MAIN","ERROR writing to socket");
-                                                                }
-
-                                                                addLogLine(clientAddr, "CAMERA", mainCmdBuffer, mainResultBuffer);
-                                                                
-                                                                mainCmdBuffer[0] = 0;
-                                                                mainResultBuffer[0] = 0;
-                                                            } else {
-                                                                logError("MAIN","Error receiving serial command to camera");
+                                                            if (errorState) {
+                                                                logError("MAIN","Sending image failure");
                                                             }
-                                                            
 
                                                         } else {
-                                                            logError("MAIN","Error sending serial command to camera");
+                                                            logError("MAIN","Image acquisition error");
                                                         }
 
 
@@ -240,155 +165,236 @@ int main()
 
 
 
+                                                    } else if (strcmp(readSocketBuffer,"get n img")==0) {
+                                                        logPrintf("MAIN","Will send n images");
 
-                                                } else if (strcmp(readSocketBuffer,"set serial")==0) {
+                                                        n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
+                                                        if (n < 0) {
 
-                                                    n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
-                                                    if (n < 0) {
+                                                            logError("MAIN","ERROR reading from socket");
 
-                                                        logError("MAIN","ERROR reading from socket");
+                                                        } else {
+                                                        
+                                                            int nImgs = 0;
+                                                            sscanf(readSocketBuffer, "%d", &nImgs);
 
-                                                    } else {
+                                                            for (int i = 0; i < nImgs; ++i)
+                                                            {
+                                                                errorState = AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
 
-                                                        // set mainCmdBuffer to what came form serial
-                                                        sprintf(mainCmdBuffer, "%s\r\n", readSocketBuffer);
+                                                                if (!errorState) {
+
+                                                                    if (i==0) saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
+
+                                                                    errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
+
+                                                                    if (errorState) {
+                                                                        logError("MAIN","Sending image failure");
+                                                                    }
+                                                                } else {
+                                                                    logError("MAIN","Image acquisition error");
+                                                                }
+                                                            }
+
+
+                                                        }
+
+
+
+
+
+
+
+
+
+                                                        } else if (strcmp(readSocketBuffer,"get serial")==0) {
+
+                                                            // send cmdBuffer to camera serial interface
+                                                            errorState = SendCameraCommand(lPort, mainCmdBuffer);
+
+                                                            if (!errorState) {
+                                                                // receive camera serial interface response
+                                                                errorState = ReceiveCameraResult(lPort, mainResultBuffer);
+
+                                                                if (!errorState) {
+
+                                                                    errorState = SendResultBuffer(socketClient, mainResultBuffer);
+                                                                    if (errorState) {
+                                                                        logError("MAIN","ERROR writing to socket");
+                                                                    }
+
+                                                                    addLogLine(clientAddr, "CAMERA", mainCmdBuffer, mainResultBuffer);
+                                                                    
+                                                                    mainCmdBuffer[0] = 0;
+                                                                    mainResultBuffer[0] = 0;
+                                                                } else {
+                                                                    logError("MAIN","Error receiving serial command to camera");
+                                                                }
+                                                                
+
+                                                            } else {
+                                                                logError("MAIN","Error sending serial command to camera");
+                                                            }
+
+
+
+
+
+
+
+
+
+
+
+                                                    } else if (strcmp(readSocketBuffer,"set serial")==0) {
+
+                                                        n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
+                                                        if (n < 0) {
+
+                                                            logError("MAIN","ERROR reading from socket");
+
+                                                        } else {
+
+                                                            // set mainCmdBuffer to what came form serial
+                                                            sprintf(mainCmdBuffer, "%s\r\n", readSocketBuffer);
+
+                                                        }
+
+
 
                                                     }
 
 
+
+
+
+
+                                                } else {
+
+                                                    logError("MAIN","ERROR reading from socket");
 
                                                 }
 
-
-
-
-
-
-                                            } else {
-
-                                                logError("MAIN","ERROR reading from socket");
-
                                             }
 
+                                            keepConnected = 1;
+
+                                            close(socketClient);
+
+                                        } else {
+                                            logError("MAIN","Socket connection error");
                                         }
 
-                                        keepConnected = 1;
-
-                                        close(socketClient);
-
                                     } else {
-                                        logError("MAIN","Socket connection error");
+                                        logError("MAIN","Socket server error");
                                     }
 
-                                } else {
-                                    logError("MAIN","Socket server error");
                                 }
 
+                                logPrintf("MAIN","Server stoped");
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+
+                                for (int i=0; i<0; i++) {
+
+                                    clock_t begin = clock();
+
+                                    // aquire image into main buffer
+                                    // TODO: return false on error
+                                    AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
+
+                                    // saves output/imgxx.raw.gz
+                                    saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
+
+                                    // sends mainCmdBuffer to camera serial interface
+                                    SendCameraCommand(lPort, mainCmdBuffer);
+                                    
+                                    usleep(1000);
+
+                                    // receive camera serial interface response
+                                    ReceiveCameraResult(lPort, mainResultBuffer);
+                                    printf("%s\n",mainResultBuffer);
+
+
+                                    clock_t end = clock();      
+                                    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+                                    printf("(%.4f)\n",elapsed_secs);
+
+                                }
+
+    */
+
+
+
+
+
+
+
+
+
+
+
+
+                                lPort->Close();
+                                logPrintf("MAIN","Serial port closed");
+
+                                // Delete device adapter (before freeing PvDevice!)
+                                delete lDeviceAdapter;
+
+                                delete lPipeline;
+
+                                delete lMyPipelineEventSink;
+
+                                // Close the stream
+                                lStream->Close();
+                                PvStream::Free( lStream );
+
+
+                                // Disconnect the device
+                                logPrintf("MAIN","Disconnecting device");
+                                lDevice->Disconnect();
+                                PvDevice::Free( lDevice );
+
+
+                            } else {
+                                logError("MAIN","Problem opening camera serial port");
                             }
-
-                            logPrintf("MAIN","Server stoped");
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-                            for (int i=0; i<0; i++) {
-
-                                clock_t begin = clock();
-
-                                // aquire image into main buffer
-                                // TODO: return false on error
-                                AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
-
-                                // saves output/imgxx.raw.gz
-                                saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
-
-                                // sends mainCmdBuffer to camera serial interface
-                                SendCameraCommand(lPort, mainCmdBuffer);
-                                
-                                usleep(1000);
-
-                                // receive camera serial interface response
-                                ReceiveCameraResult(lPort, mainResultBuffer);
-                                printf("%s\n",mainResultBuffer);
-
-
-                                clock_t end = clock();      
-                                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-                                printf("(%.4f)\n",elapsed_secs);
-
-                            }
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-                            lPort->Close();
-                            logPrintf("MAIN","Serial port closed");
-
-                            // Delete device adapter (before freeing PvDevice!)
-                            delete lDeviceAdapter;
-
-                            delete lPipeline;
-
-                            delete lMyPipelineEventSink;
-
-                            // Close the stream
-                            lStream->Close();
-                            PvStream::Free( lStream );
-
-
-                            // Disconnect the device
-                            logPrintf("MAIN","Disconnecting device");
-                            lDevice->Disconnect();
-                            PvDevice::Free( lDevice );
-
 
                         } else {
-                            logError("MAIN","Problem opening camera serial port");
+                            logError("MAIN","Problem openeng camera device adapter");
                         }
 
+
                     } else {
-                        logError("MAIN","Problem openeng camera device adapter");
+                        logError("MAIN","Problem registerig sink");
                     }
 
 
                 } else {
-                    logError("MAIN","Problem registerig sink");
+                    logError("MAIN","Problem creatig pipeline");
                 }
-
-
+                
             } else {
-                logError("MAIN","Problem creatig pipeline");
+                logError("MAIN","Problem opening stream");
             }
-            
+
         } else {
-            logError("MAIN","Problem opening stream");
+            logError("MAIN","Problem opening device");
         }
 
-    } else {
-        logError("MAIN","Problem opening device");
     }
-
 
     if (mainImageBuffer)
         free(mainImageBuffer);
