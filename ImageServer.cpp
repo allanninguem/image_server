@@ -111,7 +111,17 @@ int main()
                                                     addLogLine(clientAddr, "SERVER", readSocketBuffer, mainResultBuffer);
 
 
-                                                    if (strcmp(readSocketBuffer,"quit")==0) { 
+
+
+
+                                                    if (strcmp(readSocketBuffer,"ping")==0) { 
+                                                        logPrintf("MAIN","ping!");
+
+                                                        // quit this connection
+
+
+
+                                                    } else if (strcmp(readSocketBuffer,"quit")==0) { 
                                                         logPrintf("MAIN","Closing this connection");
 
                                                         // quit this connection
