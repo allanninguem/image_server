@@ -101,15 +101,16 @@ int main()
                                             while (keepConnected) {
 
                                                 logPrintf("MAIN","Wait for another command");
-
+                                                usleep(1000);		
 
                                                 int n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
                                                 if (n > 0) {
 
 
                                                     printf("%s\n",readSocketBuffer);
-                                                    addLogLine(clientAddr, "SERVER", readSocketBuffer, mainResultBuffer);
-
+                                                    if (strlen(readSocketBuffer)>2) {
+                                                        addLogLine(clientAddr, "SERVER", readSocketBuffer, mainResultBuffer);
+                                                    }
 
 
 

@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import sys
 import gzip
+import math
 
 _W = 640
 _H = 512
@@ -18,17 +19,45 @@ def reshapeArray(buffer, w, h, d):
 
 	return img
 	
-def loadImage(fileName, size):	
-	fid = gzip.open(fileName,'rb')
-	buffer = fid.read(size)
-	fid.close()
+def loadImage(fileName, size):
+	buffer = None
+	try :
+		fid = gzip.open(fileName,'rb')
+		buffer = fid.read(size)
+		fid.close()
 
-	return buffer
+	finally:
+		
+		return buffer
 
 
-buff = loadImage(sys.argv[1], _W*_H*_D)
-img = reshapeArray(buff, _W, _H, _D)
+n1 = int(sys.argv[1])
+n2 = int(sys.argv[2])
 
-imgplot = plt.imshow(img)
+qtd = n2-n1+1
+
+NRows = int(math.sqrt(qtd) + 0.5)
+NCols = int(float(qtd)/NRows -0.001) + 1
+
+row, col = 0,0
+
+print(NRows, NCols)
+
+for n in range(n1, n2+1):
+	print(n)
+
+	buff = loadImage('img%d.raw.gz'%n, _W*_H*_D)
+
+	if buff != None:
+		img = reshapeArray(buff, _W, _H, _D)
+
+		ax = plt.axes([0.01 + float(row)/NRows, 0.01 + float(col)/NCols, 0.97/NRows, 0.97/NCols])
+		ax.axis('off')
+		imgplot = plt.imshow(img)
+
+		row += 1
+		if row>=NRows:
+			row = 0
+			col += 1
+
 plt.show()
-
