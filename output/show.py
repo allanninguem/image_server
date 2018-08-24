@@ -31,33 +31,45 @@ def loadImage(fileName, size):
 		return buffer
 
 
-n1 = int(sys.argv[1])
-n2 = int(sys.argv[2])
 
-qtd = n2-n1+1
 
-NRows = int(math.sqrt(qtd) + 0.5)
-NCols = int(float(qtd)/NRows -0.001) + 1
+def main():
 
-row, col = 0,0
+	n1 = int(sys.argv[1])
+	n2 = int(sys.argv[2]) if len(sys.argv) == 3 else n1
 
-print(NRows, NCols)
+	qtd = n2-n1+1
 
-for n in range(n1, n2+1):
-	print(n)
+	NRows = int(math.sqrt(qtd) + 0.5)
+	NCols = int(float(qtd)/NRows -0.001) + 1
 
-	buff = loadImage('img%d.raw.gz'%n, _W*_H*_D)
+	row, col = 0,0
 
-	if buff != None:
-		img = reshapeArray(buff, _W, _H, _D)
+	print(NRows, NCols)
 
-		ax = plt.axes([0.01 + float(row)/NRows, 0.01 + float(col)/NCols, 0.97/NRows, 0.97/NCols])
-		ax.axis('off')
-		imgplot = plt.imshow(img)
+	for n in range(n1, n2+1):
+		print(n)
 
-		row += 1
-		if row>=NRows:
-			row = 0
-			col += 1
+		buff = loadImage('img%d.raw.gz'%n, _W*_H*_D)
 
-plt.show()
+		if buff != None:
+			img = reshapeArray(buff, _W, _H, _D)
+
+			ax = plt.axes([0.01 + float(row)/NRows, 0.01 + float(col)/NCols, 0.97/NRows, 0.97/NCols])
+			ax.axis('off')
+			imgplot = plt.imshow(img)
+
+			row += 1
+			if row>=NRows:
+				row = 0
+				col += 1
+
+	plt.show()
+
+
+
+
+
+
+if __name__=="__main__":
+	main()

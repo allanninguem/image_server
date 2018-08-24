@@ -7,7 +7,7 @@ int readLine(int sockFd, char *buffer, int maxSize) {
     char c = 0;
     int count = 0;
 
-    bzero(buffer,256);
+    bzero(buffer,maxSize);
     while ( (c!=10)&&(count<maxSize) ) {
         read(sockFd, &c, 1);
         buffer[count] = c;
@@ -17,6 +17,9 @@ int readLine(int sockFd, char *buffer, int maxSize) {
     if (count>=2)
     	buffer[count-2] = 0;
 
+    if (count>maxSize-2) {
+        return -1;
+    }
 
     return count;
 }
@@ -117,10 +120,6 @@ int SendResultBuffer(int clientSocket, char *lInBuffer) {
 
     return errorState;
 }
-
-
-
-
 
 
 
