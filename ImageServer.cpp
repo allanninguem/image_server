@@ -39,6 +39,8 @@ int main()
 
     int errorState;
 
+    signal(SIGPIPE, SIG_IGN);
+
 
     strcpy(mainCmdBuffer, "temperatures\n");
     
@@ -103,15 +105,17 @@ int main()
                                                 logPrintf("MAIN","Wait for another command");
                                                 usleep(1000);		
 
-                                                int n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
+                                                int n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE-10);
+
+                                                //printf("n= %d, strLen = %d - [%s]\n",n, strlen(readSocketBuffer), readSocketBuffer);
+                                                
+                                                if (n<0) {
+                                                    keepConnected = 0;
+                                                }
+
                                                 if (n > 0) {
 
-
-                                                    printf("%s\n",readSocketBuffer);
-                                                    if (strlen(readSocketBuffer)>2) {
-                                                        addLogLine(clientAddr, "SERVER", readSocketBuffer, mainResultBuffer);
-                                                    }
-
+                                                    addLogLine(clientAddr, "SERVER", readSocketBuffer, mainResultBuffer);
 
 
 
@@ -179,7 +183,7 @@ int main()
                                                     } else if (strcmp(readSocketBuffer,"get n img")==0) {
                                                         logPrintf("MAIN","Will send n images");
 
-                                                        n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE);
+                                                        n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE-10);
                                                         if (n < 0) {
 
                                                             logError("MAIN","ERROR reading from socket");

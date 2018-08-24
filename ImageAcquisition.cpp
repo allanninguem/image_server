@@ -107,6 +107,25 @@ int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, 
     // Get device parameters need to control streaming
     PvGenParameterArray *lDeviceParams = aDevice->GetParameters();
 
+    /*
+    for (int i=0; i<lDeviceParams->GetCount(); i++) {
+        PvGenParameter *par = lDeviceParams->Get(i);
+        printf("%s\n",par->GetName().GetAscii());
+    }
+    */
+
+    PvResult res = lDeviceParams->SetEnumValue("AcquisitionMode", "SingleFrame");
+    res = lDeviceParams->SetIntegerValue("AcquisitionFrameCount", 1);
+
+    //printf("%s\n",res.GetDescription().GetAscii());
+
+    PvGenParameter *par = lDeviceParams->Get("AcquisitionFrameToSkip");
+
+    //printf("%s\n",par->ToString().GetAscii());
+
+    
+
+
     // Map the GenICam AcquisitionStart and AcquisitionStop commands
     PvGenCommand *aStart = dynamic_cast<PvGenCommand *>( lDeviceParams->Get( "AcquisitionStart" ) );
     PvGenCommand *aStop = dynamic_cast<PvGenCommand *>( lDeviceParams->Get( "AcquisitionStop" ) );
@@ -117,8 +136,9 @@ int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, 
 
     // Enable streaming and send the AcquisitionStart command
     aDevice->StreamEnable();
-    aStart->Execute();
 
+    // start aqcuisition
+    aStart->Execute();
 
     waitForBufferReady(lMyPipelineEventSink);
 
