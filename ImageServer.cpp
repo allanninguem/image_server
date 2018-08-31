@@ -28,7 +28,7 @@ int keepServing = 1;
 int keepConnected = 1;
 
 
-int main()
+int main(int argc, char **argv)
 {
     PvDevice *lDevice = NULL;
     PvStream *lStream = NULL;
@@ -51,7 +51,14 @@ int main()
 
     PvString lConnectionID = CAM_IP;
     
-    if ( PvSelectDevice( &lConnectionID ) ) {
+
+    if (argc == 1) {
+
+        PvSelectDevice( &lConnectionID );
+
+    } else {
+
+        lConnectionID = argv[1];
 
         lDevice = ConnectToDevice( lConnectionID );
         if ( lDevice != NULL ) {

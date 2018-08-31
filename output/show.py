@@ -1,8 +1,11 @@
 #!/usr/bin/python
+#import matplotlib
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import sys
 import gzip
 import math
+import glob
 
 _W = 640
 _H = 512
@@ -31,12 +34,20 @@ def loadImage(fileName, size):
 		return buffer
 
 
-
+def lastImgNumber():
+	l = [int(v[3:-7]) for v in glob.glob('img*.gz')]
+	
+	return max(l) 
 
 def main():
 
-	n1 = int(sys.argv[1])
-	n2 = int(sys.argv[2]) if len(sys.argv) == 3 else n1
+	if sys.argv[1]=='last':
+		last = lastImgNumber()
+		n1 = last - eval(sys.argv[2]) + 1
+		n2 = last	
+	else:
+		n1 = eval(sys.argv[1])
+		n2 = eval(sys.argv[2]) if len(sys.argv) == 3 else n1
 
 	qtd = n2-n1+1
 

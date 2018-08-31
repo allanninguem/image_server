@@ -36,7 +36,7 @@
 #define KWHT  "\x1B[37m"
 
 #define BUFFER_COUNT 16
-#define CAM_IP "10.194.64.117"
+#define CAM_IP "10.194.64.83"
 #define COUNTER_FILE "counter.txt"
 #define MAX_IMG_W 1280
 #define MAX_IMG_H 512
