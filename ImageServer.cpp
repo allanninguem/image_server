@@ -10,6 +10,10 @@
 int gStop; // This if for PvSampleUtils.h 
 
 
+// logging of the files
+#define SAFETIME 10
+
+
 uint8_t *mainImageBuffer;
 int mainImageSizeW;
 int mainImageSizeH;
@@ -36,6 +40,8 @@ int main(int argc, char **argv)
     PvGenCommand *lStart = NULL;
     PvDeviceAdapter *lDeviceAdapter = NULL;
     PvDeviceSerialPort *lPort = NULL;
+
+    time_t currentTime = 0;
 
     int errorState;
 
@@ -166,7 +172,7 @@ int main(int argc, char **argv)
                                                         errorState = AcquireImages( lDevice, lStream, lPipeline, lMyPipelineEventSink, mainImageBuffer, mainImageSizeW, mainImageSizeH );
 
                                                         if (!errorState) {
-                                                            saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
+                                                            currentTime = saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH, currentTime, SAFETIME);
 
                                                             errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
 
@@ -206,7 +212,7 @@ int main(int argc, char **argv)
 
                                                                 if (!errorState) {
 
-                                                                    if (i==0) saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH);
+                                                                    if (i==0) currentTime = saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH, currentTime, SAFETIME);
 
                                                                     errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
 

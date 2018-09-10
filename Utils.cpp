@@ -95,29 +95,44 @@ void compressMainBufferRawImage(uint8_t *buffer, int bufferSize, uint8_t *output
 }
 
 
-void saveBufferRawImage(uint8_t *buffer, int W, int H) {
+time_t saveBufferRawImage(uint8_t *buffer, int W, int H, time_t lastTime, time_t safeInterval) {
+    time_t thisTime;
+    time_t thisInterval;
     char fileName[256];
     int outputBufferSize;
 
-    int imageCounter = loadCounter();
+    time(&thisTime);
 
-    uint8_t *outputBuffer = (uint8_t *)malloc(W*H);
+    thisInterval = thisTime - lastTime;
 
-    compressMainBufferRawImage(buffer, W*H, outputBuffer, &outputBufferSize);
+    if (thisInterval > safeInterval) {
 
-    sprintf(fileName, "output/img%d.raw.gz", imageCounter);
+        int imageCounter = loadCounter();
 
-    FILE *fid = fopen(fileName,"wb");
+        uint8_t *outputBuffer = (uint8_t *)malloc(W*H);
 
-    fwrite(outputBuffer, 1, outputBufferSize, fid);
+        compressMainBufferRawImage(buffer, W*H, outputBuffer, &outputBufferSize);
 
-    fclose(fid);
+        sprintf(fileName, "output/img%d.raw.gz", imageCounter);
 
-    free(outputBuffer);
+        FILE *fid = fopen(fileName,"wb");
+
+        fwrite(outputBuffer, 1, outputBufferSize, fid);
+
+        fclose(fid);
+
+        free(outputBuffer);
 
 
-    imageCounter++;
-    writeCounter(imageCounter);
+        imageCounter++;
+        writeCounter(imageCounter);
+
+        return thisTime;
+
+    } else {
+        
+        return lastTime;
+    }
 
 }
 

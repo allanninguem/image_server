@@ -24,7 +24,7 @@
 #include <PvBufferWriter.h>
 
 #include "zlib.h"
-
+#include "time.h"
 
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -52,7 +52,7 @@ int loadCounter();
 void writeCounter(int imageCounter);
 void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH);
 void compressMainBufferRawImage(uint8_t *buffer, int bufferSize, uint8_t *outputBuffer, int *outputBufferSize);
-void saveBufferRawImage(uint8_t *buffer, int W, int H);
+time_t saveBufferRawImage(uint8_t *buffer, int W, int H, time_t currentTime, time_t safeTime);
 void addLogLine(struct sockaddr_in  cliAddr, const char *level, char *cmd, char *result);
 
 

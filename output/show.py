@@ -58,8 +58,10 @@ def main():
 
 	print(NRows, NCols)
 
+	print('start = %d, end = %d'%(n1, n2))
+
 	for n in range(n1, n2+1):
-		print(n)
+		#print(n)
 
 		buff = loadImage('img%d.raw.gz'%n, _W*_H*_D)
 
