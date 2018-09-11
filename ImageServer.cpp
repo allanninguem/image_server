@@ -22,6 +22,7 @@ char mainResultBuffer[RX_BUFFER_SIZE];
 int imageCounter;
 
 float *fluxImage;
+int fluxImageW, fluxImageH;
 
 // socket stuff
 #define SOCKET_SERVER_PORT 6660
@@ -57,7 +58,13 @@ int main(int argc, char **argv)
 
     fillBuffer(&mainImageBuffer, MAX_IMG_W, MAX_IMG_H);
 
+    
+
+    fluxImageW = MAX_IMG_W/2;
+    fluxImageH = MAX_IMG_H;
     fluxImage = new float[MAX_IMG_W*MAX_IMG_H/2];
+
+
 
     PvString lConnectionID = CAM_IP;
     
@@ -207,7 +214,7 @@ int main(int argc, char **argv)
                                                             int nImgs = 0;
                                                             sscanf(readSocketBuffer, "%d", &nImgs);
 
-                                                            errorState = AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, fluxImage) {
+                                                            errorState = AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, fluxImage);
 
                                                             if (!errorState) {
 
@@ -222,28 +229,7 @@ int main(int argc, char **argv)
                                                                 logError("MAIN","Flux Image acquisition error");
                                                             }
 
-
                                                         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -319,9 +305,6 @@ int main(int argc, char **argv)
                                                             } else {
                                                                 logError("MAIN","Error sending serial command to camera");
                                                             }
-
-
-
 
 
 
