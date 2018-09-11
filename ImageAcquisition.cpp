@@ -237,10 +237,8 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
     Y = new float[fluxImageW*fluxImageH];
     sumY = new float[fluxImageW*fluxImageH];
     sumXY = new float[fluxImageW*fluxImageH];
-    sumY2 = new float[fluxImageW*fluxImageH];
 
     zeros(sumY, fluxImageW, fluxImageH);
-    zeros(sumY2, fluxImageW, fluxImageH);
     zeros(sumXY, fluxImageW, fluxImageH);
 
     for (i=1;i<N;i++) {
@@ -253,7 +251,6 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
         X = (nextTime - timeNow)/1.0e6;
 
         sumValues(sumY, Y, fluxImageW, fluxImageH);
-        sumSquares(sumY2, Y, fluxImageW, fluxImageH);
         sumProducts(sumXY, Y, X, fluxImageW, fluxImageH);
 
         sumX += X;
@@ -261,8 +258,7 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
 
     }
 
-    computeFlux(sumY, sumY2, sumXY, sumX, sumX2, N, fluxImageW, fluxImageH, fluxImage);
-
+    computeFlux(sumY, sumXY, sumX, sumX2, N, fluxImageW, fluxImageH, fluxImage);
 
 
     return errorState;
@@ -271,7 +267,7 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
 
 
 
-void computeFlux(float *sumY, float *sumY2, float *sumXY, float sumX, float sumX2, int N, int width, int height, float *fluxImage) {
+void computeFlux(float *sumY, float *sumXY, float sumX, float sumX2, int N, int width, int height, float *fluxImage) {
     int i;
 
     for (i=0; i<height*width/2; i++) {
@@ -308,6 +304,7 @@ void sumValues(float *sumY, float *Y, int width, int height) {
         sumY[i] += Y[i];
     }
 }
+
 
 void sumSquares(float *sumY2, float *Y, int width, int height) {
     int i;
