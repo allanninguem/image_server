@@ -21,6 +21,8 @@ char mainCmdBuffer[CMD_BUFFER_SIZE];
 char mainResultBuffer[RX_BUFFER_SIZE];
 int imageCounter;
 
+float *fluxImage;
+
 // socket stuff
 #define SOCKET_SERVER_PORT 6660
 #define READ_BUFFER_SIZE 1024
@@ -54,6 +56,8 @@ int main(int argc, char **argv)
     logPrintf("MAIN","Image Server");
 
     fillBuffer(&mainImageBuffer, MAX_IMG_W, MAX_IMG_H);
+
+    fluxImage = new float[MAX_IMG_W*MAX_IMG_H/2];
 
     PvString lConnectionID = CAM_IP;
     
@@ -183,6 +187,58 @@ int main(int argc, char **argv)
                                                         } else {
                                                             logError("MAIN","Image acquisition error");
                                                         }
+
+
+
+
+
+
+
+                                                    } else if (strcmp(readSocketBuffer,"get fluximg")==0) {
+                                                        logPrintf("MAIN","Will send a flux image");
+
+                                                        n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE-10);
+                                                        if (n < 0) {
+
+                                                            logError("MAIN","ERROR reading from socket");
+
+                                                        } else {
+                                                        
+                                                            int nImgs = 0;
+                                                            sscanf(readSocketBuffer, "%d", &nImgs);
+
+                                                            errorState = AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, fluxImage) {
+
+                                                            if (!errorState) {
+
+                                                                //if (i==0) currentTime = saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH, currentTime, SAFETIME);
+
+                                                                //errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
+
+                                                                if (errorState) {
+                                                                    logError("MAIN","Sending image failure");
+                                                                }
+                                                            } else {
+                                                                logError("MAIN","Flux Image acquisition error");
+                                                            }
+
+
+                                                        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

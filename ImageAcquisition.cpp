@@ -214,5 +214,118 @@ int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, 
     // Stop the pipeline
     aPipeline->Stop();
     
+    return errorState;
 }
  
+
+
+
+int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, float *fluxImage) {
+    int i;
+    int errorState = 0;
+    uint8_t *mainImageBuffer;
+    int bufferImageW, bufferImageH;
+    float *sumY, *sumXY, *sumY2, *Y;
+    float X, sumX, sumX2;
+    long timeNow, nextTime;
+
+
+
+    mainImageBuffer = new uint8_t[fluxImageW*fluxImageH*2];
+
+
+    Y = new float[fluxImageW*fluxImageH];
+    sumY = new float[fluxImageW*fluxImageH];
+    sumXY = new float[fluxImageW*fluxImageH];
+    sumY2 = new float[fluxImageW*fluxImageH];
+
+    zeros(sumY, fluxImageW, fluxImageH);
+    zeros(sumY2, fluxImageW, fluxImageH);
+    zeros(sumXY, fluxImageW, fluxImageH);
+
+    for (i=1;i<N;i++) {
+        errorState += AcquireImages( aDevice, aStream, aPipeline, lMyPipelineEventSink, mainImageBuffer, bufferImageW, bufferImageH);
+
+        timeNow = getMicrotime();
+        buffer2float(mainImageBuffer, Y, fluxImageW, fluxImageH);
+        nextTime = getMicrotime();
+
+        X = (nextTime - timeNow)/1.0e6;
+
+        sumValues(sumY, Y, fluxImageW, fluxImageH);
+        sumSquares(sumY2, Y, fluxImageW, fluxImageH);
+        sumProducts(sumXY, Y, X, fluxImageW, fluxImageH);
+
+        sumX += X;
+        sumX2 += X*X;
+
+    }
+
+    computeFlux(sumY, sumY2, sumXY, sumX, sumX2, N, fluxImageW, fluxImageH, fluxImage);
+
+
+
+    return errorState;
+}
+
+
+
+
+void computeFlux(float *sumY, float *sumY2, float *sumXY, float sumX, float sumX2, int N, int width, int height, float *fluxImage) {
+    int i;
+
+    for (i=0; i<height*width/2; i++) {
+        fluxImage[i] = (sumXY[i]*(float)N - sumX*sumY[i])/(sumX2*(float)N - sumX*sumX);
+    }
+
+}
+
+
+void buffer2float(uint8_t *buffer, float *floatImage, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width/2; i++) {
+        floatImage[i] = buffer[2*i+1]*255 + buffer[2*i];
+    }
+}
+
+
+
+void zeros(float *floatImage, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width; i++) {
+        floatImage[i] = 0.0;
+    }
+}
+
+
+
+void sumValues(float *sumY, float *Y, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width; i++) {
+        sumY[i] += Y[i];
+    }
+}
+
+void sumSquares(float *sumY2, float *Y, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width; i++) {
+        sumY2[i] += Y[i]*Y[i];
+    }
+}
+
+
+void sumProducts(float *sumXY, float *Y, float X, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width; i++) {
+        sumXY[i] += Y[i]*X;
+    }
+}
+
+
+
+

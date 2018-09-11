@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -54,7 +55,7 @@ void fillBuffer(uint8_t **buffer, int imageSizeW, int imageSizeH);
 void compressMainBufferRawImage(uint8_t *buffer, int bufferSize, uint8_t *outputBuffer, int *outputBufferSize);
 time_t saveBufferRawImage(uint8_t *buffer, int W, int H, time_t currentTime, time_t safeTime);
 void addLogLine(struct sockaddr_in  cliAddr, const char *level, char *cmd, char *result);
-
+long getMicrotime();
 
 
 // MyPipelineEventSink class

@@ -137,7 +137,11 @@ time_t saveBufferRawImage(uint8_t *buffer, int W, int H, time_t lastTime, time_t
 }
 
 
-
+long getMicrotime() {
+    struct timeval currentTime;
+    gettimeofday(&currentTime, NULL);
+    return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
+}
 
 
 
