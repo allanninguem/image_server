@@ -104,6 +104,7 @@ int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, 
     int errorState = 0;
 
 
+
     // Get device parameters need to control streaming
     PvGenParameterArray *lDeviceParams = aDevice->GetParameters();
 

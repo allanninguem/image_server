@@ -217,7 +217,8 @@ int main(int argc, char **argv)
 
                                                             logPrintf("MAIN","Will set nbreadworeset");
                                                             errorState = setNbreadworeset(lPort, 1); // tentative of reseting the readouts
-                                                            errorState = setNbreadworeset(lPort, nImgs+2); // we always loose the first frame, so lets be sure...
+                                                            errorState = setNbreadworeset(lPort, 2*nImgs+2); // we always loose the first frame, so lets be sure...
+                                                                                                             // also, we always double the frames in acquisition...
 
                                                             errorState += AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, fluxImage);
 
