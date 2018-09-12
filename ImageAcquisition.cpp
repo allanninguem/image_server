@@ -236,7 +236,8 @@ int setNbreadworeset(PvDeviceSerialPort *aPort, int N) {
 
 
 
-
+// TODO: put saturation parameter
+// TODO: assemble "used points whitout saturation" image
 int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, float *fluxImage) {
     int i;
     int errorState = 0;
