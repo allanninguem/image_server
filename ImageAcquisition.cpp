@@ -224,11 +224,6 @@ int setNbreadworeset(PvDeviceSerialPort *aPort, int N) {
 
     char mainCmdBuffer[RX_BUFFER_SIZE];
 
-    sprintf(mainCmdBuffer, "set nbreadworeset %d\n",1);
-    errorState = SendCameraCommand(aPort, mainCmdBuffer);
-    errorState += ReceiveCameraResult(aPort, mainCmdBuffer);
-    printf("%s",mainCmdBuffer);
-
     sprintf(mainCmdBuffer, "set nbreadworeset %d\n",N);
     errorState += SendCameraCommand(aPort, mainCmdBuffer);
     errorState += ReceiveCameraResult(aPort, mainCmdBuffer);
