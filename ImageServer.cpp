@@ -214,16 +214,21 @@ int main(int argc, char **argv)
                                                             int nImgs = 0;
                                                             sscanf(readSocketBuffer, "%d", &nImgs);
 
-                                                            errorState = AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, fluxImage);
+
+                                                            logPrintf("MAIN","Will set nbreadworeset");
+                                                            errorState = setNbreadworeset(lPort, nImgs+2); // we always loose the first frame, so lets be sure...
+
+                                                            errorState += AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, fluxImage);
 
                                                             if (!errorState) {
 
                                                                 //if (i==0) currentTime = saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH, currentTime, SAFETIME);
 
                                                                 //errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
+                                                                errorState = sendFluxImage(socketClient, fluxImage, fluxImageW, fluxImageH);
 
                                                                 if (errorState) {
-                                                                    logError("MAIN","Sending image failure");
+                                                                    logError("MAIN","Sending flux image failure");
                                                                 }
                                                             } else {
                                                                 logError("MAIN","Flux Image acquisition error");

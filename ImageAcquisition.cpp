@@ -219,6 +219,27 @@ int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, 
  
 
 
+int setNbreadworeset(PvDeviceSerialPort *aPort, int N) {
+    int errorState = 0;
+
+    char mainCmdBuffer[RX_BUFFER_SIZE];
+
+    sprintf(mainCmdBuffer, "set nbreadworeset %d\n",1);
+    errorState = SendCameraCommand(aPort, mainCmdBuffer);
+    errorState += ReceiveCameraResult(aPort, mainCmdBuffer);
+    printf("%s",mainCmdBuffer);
+
+    sprintf(mainCmdBuffer, "set nbreadworeset %d\n",N);
+    errorState += SendCameraCommand(aPort, mainCmdBuffer);
+    errorState += ReceiveCameraResult(aPort, mainCmdBuffer);
+    printf("%s",mainCmdBuffer);
+
+    return errorState;
+}
+                                                            
+
+
+
 
 int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, float *fluxImage) {
     int i;
@@ -240,22 +261,26 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
 
     zeros(sumY, fluxImageW, fluxImageH);
     zeros(sumXY, fluxImageW, fluxImageH);
+    sumX = 0.0;
+    sumX2 = 0.0;
 
-    for (i=1;i<N;i++) {
+    timeNow = getMicrotime();
+    for (i=0;i<N;i++) {
+
         errorState += AcquireImages( aDevice, aStream, aPipeline, lMyPipelineEventSink, mainImageBuffer, bufferImageW, bufferImageH);
 
-        timeNow = getMicrotime();
-        buffer2float(mainImageBuffer, Y, fluxImageW, fluxImageH);
         nextTime = getMicrotime();
-
         X = (nextTime - timeNow)/1.0e6;
 
-        sumValues(sumY, Y, fluxImageW, fluxImageH);
-        sumProducts(sumXY, Y, X, fluxImageW, fluxImageH);
+        buffer2float(mainImageBuffer, Y, fluxImageW, fluxImageH);
+
+        sumProducts(sumY,  Y, 1.0, fluxImageW, fluxImageH);
+        sumProducts(sumXY, Y ,  X, fluxImageW, fluxImageH);
 
         sumX += X;
         sumX2 += X*X;
 
+        printf("%f, %f; \n",computeMeanOfFrame(Y, fluxImageW, fluxImageH), X);
     }
 
     computeFlux(sumY, sumXY, sumX, sumX2, N, fluxImageW, fluxImageH, fluxImage);
@@ -265,12 +290,24 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
 }
 
 
+float computeMeanOfFrame(float *Y, int width, int height) {
+    int i;
+    float m = 0.0;
+
+    for (i=0; i<height*width; i++) {
+        m += Y[i];
+    }
+
+    return m/(float)(height*width);
+
+}
+
 
 
 void computeFlux(float *sumY, float *sumXY, float sumX, float sumX2, int N, int width, int height, float *fluxImage) {
     int i;
 
-    for (i=0; i<height*width/2; i++) {
+    for (i=0; i<height*width; i++) {
         fluxImage[i] = (sumXY[i]*(float)N - sumX*sumY[i])/(sumX2*(float)N - sumX*sumX);
     }
 
@@ -280,7 +317,7 @@ void computeFlux(float *sumY, float *sumXY, float sumX, float sumX2, int N, int 
 void buffer2float(uint8_t *buffer, float *floatImage, int width, int height) {
     int i;
 
-    for (i=0; i<height*width/2; i++) {
+    for (i=0; i<height*width; i++) {
         floatImage[i] = buffer[2*i+1]*255 + buffer[2*i];
     }
 }
@@ -297,22 +334,6 @@ void zeros(float *floatImage, int width, int height) {
 
 
 
-void sumValues(float *sumY, float *Y, int width, int height) {
-    int i;
-
-    for (i=0; i<height*width; i++) {
-        sumY[i] += Y[i];
-    }
-}
-
-
-void sumSquares(float *sumY2, float *Y, int width, int height) {
-    int i;
-
-    for (i=0; i<height*width; i++) {
-        sumY2[i] += Y[i]*Y[i];
-    }
-}
 
 
 void sumProducts(float *sumXY, float *Y, float X, int width, int height) {

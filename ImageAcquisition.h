@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <PvSampleUtils.h>
 #include <PvDevice.h>
 #include <PvDeviceGEV.h>
 #include <PvDeviceU3V.h>
@@ -17,6 +18,7 @@
 #include <PvBufferWriter.h>
 
 #include "Utils.h"
+#include "SerialComm.h"
 
 void saveBuffer(PvBuffer *lBuffer);
 PvDevice *ConnectToDevice( const PvString &aConnectionID );
@@ -31,8 +33,8 @@ void computeFlux(float *sumY, float *sumXY, float sumX, float sumX2, int N, int 
 void buffer2float(uint8_t *buffer, float *floatImage, int width, int height);
 void zeros(float *floatImage, int width, int height);
 void sumValues(float *sumY, float *Y, int width, int height);
-void sumSquares(float *sumY2, float *Y, int width, int height);
 void sumProducts(float *sumXY, float *Y, float X, int width, int height);
-
+float computeMeanOfFrame(float *Y, int width, int height);
+int setNbreadworeset(PvDeviceSerialPort *aPort, int N);
 
 #endif // __IMAGEACQUISITION_H__
