@@ -234,17 +234,26 @@ int setNbreadworeset(PvDeviceSerialPort *aPort, int N) {
 }
                                                             
 
+void incrementPointsConsidered(uint8_t *pointsConsidered, float *aquiredImage, int maxADU, int fluxImageW, int fluxImageH) {
+    int i;
+    for (i=0;i<fluxImageW*fluxImageH;i++) {
+        if (aquiredImage[i]<maxADU) {
+            pointsConsidered[i]++;
+        }
+    }
+}
 
 
 // TODO: put saturation parameter
 // TODO: assemble "used points whitout saturation" image
-int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, float *fluxImage) {
+// OBS2: points considered is a uint8 points, so max of 256 points possible
+int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, int maxADU, float *fluxImage, uint8_t *pointsConsidered) {
     int i;
     int errorState = 0;
     uint8_t *mainImageBuffer;
     int bufferImageW, bufferImageH;
     float *sumY, *sumXY, *sumY2, *Y;
-    float X, sumX, sumX2;
+    float *sumX, *sumX2, X;
     long timeNow, nextTime;
 
 
@@ -255,11 +264,14 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
     Y = new float[fluxImageW*fluxImageH];
     sumY = new float[fluxImageW*fluxImageH];
     sumXY = new float[fluxImageW*fluxImageH];
+    sumX = new float[fluxImageW*fluxImageH];
+    sumX2 = new float[fluxImageW*fluxImageH];
+
 
     zeros(sumY, fluxImageW, fluxImageH);
     zeros(sumXY, fluxImageW, fluxImageH);
-    sumX = 0.0;
-    sumX2 = 0.0;
+    zeros(sumX, fluxImageW, fluxImageH);
+    zeros(sumX2, fluxImageW, fluxImageH);
 
     timeNow = getMicrotime();
     for (i=0;i<N;i++) {
@@ -271,17 +283,23 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
 
         buffer2float(mainImageBuffer, Y, fluxImageW, fluxImageH);
 
-        sumProducts(sumY,  Y, 1.0, fluxImageW, fluxImageH);
-        sumProducts(sumXY, Y ,  X, fluxImageW, fluxImageH);
+        incrementPointsConsidered(pointsConsidered, Y, maxADU, fluxImageW, fluxImageH);
 
-        sumX += X;
-        sumX2 += X*X;
+        sumProducts(sumY,  Y, 1.0, maxADU, fluxImageW, fluxImageH);
+        sumProducts(sumXY, Y ,  X, maxADU, fluxImageW, fluxImageH);
+
+        sumProductsX(sumX,  (float)X,       1.0, Y, maxADU, fluxImageW, fluxImageH);
+        sumProductsX(sumX2, (float)X,  (float)X, Y, maxADU, fluxImageW, fluxImageH);
 
         printf("%f, %f; \n",computeMeanOfFrame(Y, fluxImageW, fluxImageH), X);
     }
 
-    computeFlux(sumY, sumXY, sumX, sumX2, N, fluxImageW, fluxImageH, fluxImage);
+    computeFlux(sumY, sumXY, sumX, sumX2, pointsConsidered, fluxImageW, fluxImageH, fluxImage);
 
+
+    //for (i=0;i<fluxImageH*fluxImageW; i++) {
+    //    fluxImage[i] = (float)pointsConsidered[i];
+    //}
 
     return errorState;
 }

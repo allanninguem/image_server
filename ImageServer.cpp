@@ -22,6 +22,7 @@ char mainResultBuffer[RX_BUFFER_SIZE];
 int imageCounter;
 
 float *fluxImage;
+uint8_t *pointsConsidered;
 int fluxImageW, fluxImageH;
 
 // socket stuff
@@ -63,6 +64,7 @@ int main(int argc, char **argv)
     fluxImageW = MAX_IMG_W/2;
     fluxImageH = MAX_IMG_H;
     fluxImage = new float[MAX_IMG_W*MAX_IMG_H/2];
+    pointsConsidered = new uint8_t[MAX_IMG_W*MAX_IMG_H/2];
 
 
 
@@ -212,15 +214,17 @@ int main(int argc, char **argv)
                                                         } else {
                                                         
                                                             int nImgs = 0;
-                                                            sscanf(readSocketBuffer, "%d", &nImgs);
+                                                            int maxADU = 0;
+                                                            sscanf(readSocketBuffer, "%d %d", &nImgs, &maxADU);
 
 
                                                             logPrintf("MAIN","Will set nbreadworeset");
                                                             errorState = setNbreadworeset(lPort, 1); // tentative of reseting the readouts
-                                                            errorState = setNbreadworeset(lPort, 2*nImgs+2); // we always loose the first frame, so lets be sure...
+                                                            errorState += setNbreadworeset(lPort, 2*nImgs+2); // we always loose the first frame, so lets be sure...
                                                                                                              // also, we always double the frames in acquisition...
 
-                                                            errorState += AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, fluxImage);
+                                                            memset(pointsConsidered, 0, fluxImageW*fluxImageH);
+                                                            errorState += AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, maxADU, fluxImage, pointsConsidered);
 
                                                             if (!errorState) {
 
@@ -228,6 +232,7 @@ int main(int argc, char **argv)
 
                                                                 //errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
                                                                 errorState = sendFluxImage(socketClient, fluxImage, fluxImageW, fluxImageH);
+                                                                errorState += sendImageBuffer(socketClient, pointsConsidered, fluxImageW, fluxImageH);
 
                                                                 if (errorState) {
                                                                     logError("MAIN","Sending flux image failure");
