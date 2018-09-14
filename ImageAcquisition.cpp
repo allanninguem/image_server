@@ -247,7 +247,7 @@ void incrementPointsConsidered(uint8_t *pointsConsidered, float *aquiredImage, i
 // TODO: put saturation parameter
 // TODO: assemble "used points whitout saturation" image
 // OBS2: points considered is a uint8 points, so max of 256 points possible
-int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, int maxADU, float *fluxImage, uint8_t *pointsConsidered) {
+int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, int maxADU, float *fluxImage, float *timeStamps, uint8_t *pointsConsidered) {
     int i;
     int errorState = 0;
     uint8_t *mainImageBuffer;
@@ -274,12 +274,15 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
     zeros(sumX2, fluxImageW, fluxImageH);
 
     timeNow = getMicrotime();
+    timeStamps[0] = timeNow;
     for (i=0;i<N;i++) {
 
         errorState += AcquireImages( aDevice, aStream, aPipeline, lMyPipelineEventSink, mainImageBuffer, bufferImageW, bufferImageH);
 
         nextTime = getMicrotime();
+
         X = (nextTime - timeNow)/1.0e6;
+        timeStamps[i] = X;
 
         buffer2float(mainImageBuffer, Y, fluxImageW, fluxImageH);
 

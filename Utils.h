@@ -42,6 +42,8 @@
 #define MAX_IMG_W 1280
 #define MAX_IMG_H 512
 
+#define MAX_RAMP_POINTS 127
+
 // zlib stuff
 #define WINDOWS_BITS 15
 #define GZIP_ENCODING 16

@@ -29,7 +29,7 @@ PvPipeline *CreatePipeline( PvDevice *aDevice, PvStream *aStream );
 void waitForBufferReady(MyPipelineEventSink *lMyPipelineEventSink);
 int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer, int &imageSizeW, int &imageSizeH);
 
-int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, int maxADU, float *fluxImage, uint8_t *pointsConsidered);
+int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, int maxADU, float *fluxImage, float *timeStamps, uint8_t *pointsConsidered);
 int setNbreadworeset(PvDeviceSerialPort *aPort, int N);
 
 #endif // __IMAGEACQUISITION_H__
