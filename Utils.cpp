@@ -146,6 +146,24 @@ long getMicrotime() {
 
 
 
+void buffer2float(uint8_t *buffer, float *floatImage, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width; i++) {
+        floatImage[i] = buffer[2*i+1]*255 + buffer[2*i];
+    }
+}
+
+
+
+void zeros(float *floatImage, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width; i++) {
+        floatImage[i] = 0.0;
+    }
+}
+
 
 
 

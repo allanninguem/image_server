@@ -19,6 +19,7 @@
 
 #include "Utils.h"
 #include "SerialComm.h"
+#include "Science.h"
 
 void saveBuffer(PvBuffer *lBuffer);
 PvDevice *ConnectToDevice( const PvString &aConnectionID );
@@ -29,12 +30,6 @@ void waitForBufferReady(MyPipelineEventSink *lMyPipelineEventSink);
 int AcquireImages( PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, uint8_t *imageBuffer, int &imageSizeW, int &imageSizeH);
 
 int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, float *fluxImage);
-void computeFlux(float *sumY, float *sumXY, float sumX, float sumX2, int N, int width, int height, float *fluxImage);
-void buffer2float(uint8_t *buffer, float *floatImage, int width, int height);
-void zeros(float *floatImage, int width, int height);
-void sumValues(float *sumY, float *Y, int width, int height);
-void sumProducts(float *sumXY, float *Y, float X, int width, int height);
-float computeMeanOfFrame(float *Y, int width, int height);
 int setNbreadworeset(PvDeviceSerialPort *aPort, int N);
 
 #endif // __IMAGEACQUISITION_H__
