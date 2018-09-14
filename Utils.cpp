@@ -137,10 +137,32 @@ time_t saveBufferRawImage(uint8_t *buffer, int W, int H, time_t lastTime, time_t
 }
 
 
+long getMicrotime() {
+    struct timeval currentTime;
+    gettimeofday(&currentTime, NULL);
+    return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
+}
 
 
 
 
+void buffer2float(uint8_t *buffer, float *floatImage, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width; i++) {
+        floatImage[i] = buffer[2*i+1]*255 + buffer[2*i];
+    }
+}
+
+
+
+void zeros(float *floatImage, int width, int height) {
+    int i;
+
+    for (i=0; i<height*width; i++) {
+        floatImage[i] = 0.0;
+    }
+}
 
 
 

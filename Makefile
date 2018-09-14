@@ -4,6 +4,7 @@ SRC_CPPS = \
 	   ImageAcquisition.cpp \
 	   SerialComm.cpp \
 	   SocketServer.cpp \
+	   Science.cpp \
 
 EXEC     = image_server
 

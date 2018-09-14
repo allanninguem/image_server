@@ -21,6 +21,10 @@ char mainCmdBuffer[CMD_BUFFER_SIZE];
 char mainResultBuffer[RX_BUFFER_SIZE];
 int imageCounter;
 
+float *fluxImage;
+uint8_t *pointsConsidered;
+int fluxImageW, fluxImageH;
+
 // socket stuff
 #define SOCKET_SERVER_PORT 6660
 #define READ_BUFFER_SIZE 1024
@@ -54,6 +58,15 @@ int main(int argc, char **argv)
     logPrintf("MAIN","Image Server");
 
     fillBuffer(&mainImageBuffer, MAX_IMG_W, MAX_IMG_H);
+
+    
+
+    fluxImageW = MAX_IMG_W/2;
+    fluxImageH = MAX_IMG_H;
+    fluxImage = new float[MAX_IMG_W*MAX_IMG_H/2];
+    pointsConsidered = new uint8_t[MAX_IMG_W*MAX_IMG_H/2];
+
+
 
     PvString lConnectionID = CAM_IP;
     
@@ -190,6 +203,47 @@ int main(int argc, char **argv)
 
 
 
+                                                    } else if (strcmp(readSocketBuffer,"get fluximg")==0) {
+                                                        logPrintf("MAIN","Will send a flux image");
+
+                                                        n = readLine(socketClient,readSocketBuffer,READ_BUFFER_SIZE-10);
+                                                        if (n < 0) {
+
+                                                            logError("MAIN","ERROR reading from socket");
+
+                                                        } else {
+                                                        
+                                                            int nImgs = 0;
+                                                            int maxADU = 0;
+                                                            sscanf(readSocketBuffer, "%d %d", &nImgs, &maxADU);
+
+
+                                                            logPrintf("MAIN","Will set nbreadworeset");
+                                                            errorState = setNbreadworeset(lPort, 1); // tentative of reseting the readouts
+                                                            errorState += setNbreadworeset(lPort, 2*nImgs+2); // we always loose the first frame, so lets be sure...
+                                                                                                             // also, we always double the frames in acquisition...
+
+                                                            memset(pointsConsidered, 0, fluxImageW*fluxImageH);
+                                                            errorState += AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, maxADU, fluxImage, pointsConsidered);
+
+                                                            if (!errorState) {
+
+                                                                //if (i==0) currentTime = saveBufferRawImage(mainImageBuffer, mainImageSizeW, mainImageSizeH, currentTime, SAFETIME);
+
+                                                                //errorState = sendImageBuffer(socketClient, mainImageBuffer, mainImageSizeW, mainImageSizeH);
+                                                                errorState = sendFluxImage(socketClient, fluxImage, fluxImageW, fluxImageH);
+                                                                errorState += sendImageBuffer(socketClient, pointsConsidered, fluxImageW, fluxImageH);
+
+                                                                if (errorState) {
+                                                                    logError("MAIN","Sending flux image failure");
+                                                                }
+                                                            } else {
+                                                                logError("MAIN","Flux Image acquisition error");
+                                                            }
+
+                                                        }
+
+
 
 
 
@@ -263,9 +317,6 @@ int main(int argc, char **argv)
                                                             } else {
                                                                 logError("MAIN","Error sending serial command to camera");
                                                             }
-
-
-
 
 
 

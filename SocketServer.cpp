@@ -92,6 +92,29 @@ int sendImageBuffer(int clientSocket, uint8_t *imageBuffer, int imageSizeW, int 
 
 
 
+int sendFluxImage(int clientSocket, float *fluxImage, int fluxImageW, int fluxImageH) {
+    int errorState = 0;
+
+    char utfSize[4];
+    utfSize[1] = (fluxImageW&0xff00)>>8;
+    utfSize[0] = fluxImageW&0xff;
+    utfSize[3] = (fluxImageH&0xff00)>>8;
+    utfSize[2] = fluxImageH&0xff;
+    int n = write(clientSocket,utfSize,4);
+    if (n < 0) {
+        errorState = 1;
+    }
+    n = write(clientSocket,(uint8_t *)fluxImage,fluxImageW*fluxImageH*4);
+    if (n < 0) {
+        errorState = 1;
+    }
+
+    return errorState;
+
+}
+
+
+
 
 int SendResultBuffer(int clientSocket, char *lInBuffer) {
     int errorState = 0;

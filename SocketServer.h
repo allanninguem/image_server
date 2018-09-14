@@ -20,7 +20,7 @@ int readLine(int sockFd, char *buffer, int maxSize);
 int initServer(int portNo);
 int waitForConnection(int sockFd, struct sockaddr_in &cliAddr);
 int sendImageBuffer(int clientSocket, uint8_t *imageBuffer, int imageSizeW, int imageSizeH);
-
+int sendFluxImage(int clientSocket, float *fluxImage, int fluxImageW, int fluxImageH);
 
 
 
