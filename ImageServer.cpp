@@ -24,6 +24,7 @@ int imageCounter;
 float *fluxImage;
 uint8_t *pointsConsidered;
 float *timeStamps;
+float *averages;
 int fluxImageW, fluxImageH;
 
 // socket stuff
@@ -67,6 +68,7 @@ int main(int argc, char **argv)
     fluxImage = new float[MAX_IMG_W*MAX_IMG_H/2];
     pointsConsidered = new uint8_t[MAX_IMG_W*MAX_IMG_H/2];
     timeStamps = new float[MAX_RAMP_POINTS];
+    averages = new float[MAX_RAMP_POINTS];
 
 
     PvString lConnectionID = CAM_IP;
@@ -225,10 +227,10 @@ int main(int argc, char **argv)
                                                                                                              // also, we always double the frames in acquisition...
 
                                                             memset(pointsConsidered, 0, fluxImageW*fluxImageH);
-                                                            errorState += AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, maxADU, fluxImage, timeStamps, pointsConsidered);
+                                                            errorState += AcquireFluxImage( lDevice, lStream, lPipeline, lMyPipelineEventSink, fluxImageW, fluxImageH, nImgs, maxADU, fluxImage, timeStamps, averages, pointsConsidered);
 
                                                             for (int i=0;i<nImgs; i++) {
-                                                                printf("time %d : %.4f\n",i,timeStamps[i]);
+                                                                printf("time %d : %.4f, average: %.4f\n",i,timeStamps[i], averages[i]);
                                                             }
 
                                                             if (!errorState) {
@@ -239,6 +241,7 @@ int main(int argc, char **argv)
                                                                 errorState = sendFluxImage(socketClient, fluxImage, fluxImageW, fluxImageH);
                                                                 errorState += sendImageBuffer(socketClient, pointsConsidered, fluxImageW, fluxImageH);
                                                                 errorState += sendFluxImage(socketClient, timeStamps, nImgs, 1);
+                                                                errorState += sendFluxImage(socketClient, averages, nImgs, 1);
 
                                                                 if (errorState) {
                                                                     logError("MAIN","Sending flux image failure");

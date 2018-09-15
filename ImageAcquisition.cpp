@@ -247,7 +247,7 @@ void incrementPointsConsidered(uint8_t *pointsConsidered, float *aquiredImage, i
 // TODO: put saturation parameter
 // TODO: assemble "used points whitout saturation" image
 // OBS2: points considered is a uint8 points, so max of 256 points possible
-int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, int maxADU, float *fluxImage, float *timeStamps, uint8_t *pointsConsidered) {
+int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline, MyPipelineEventSink *lMyPipelineEventSink, int fluxImageW, int fluxImageH, int N, int maxADU, float *fluxImage, float *timeStamps, float *averages, uint8_t *pointsConsidered) {
     int i;
     int errorState = 0;
     uint8_t *mainImageBuffer;
@@ -294,15 +294,15 @@ int AcquireFluxImage(PvDevice *aDevice, PvStream *aStream, PvPipeline *aPipeline
         sumProductsX(sumX,  (float)X,       1.0, Y, maxADU, fluxImageW, fluxImageH);
         sumProductsX(sumX2, (float)X,  (float)X, Y, maxADU, fluxImageW, fluxImageH);
 
-        printf("%f, %f; \n",computeMeanOfFrame(Y, fluxImageW, fluxImageH), X);
+        float average = computeMeanOfFrame(Y, fluxImageW, fluxImageH);
+
+        averages[i] = average;
+
+        printf("%f, %f; \n",average, X);
     }
 
     computeFlux(sumY, sumXY, sumX, sumX2, pointsConsidered, fluxImageW, fluxImageH, fluxImage);
 
-
-    //for (i=0;i<fluxImageH*fluxImageW; i++) {
-    //    fluxImage[i] = (float)pointsConsidered[i];
-    //}
 
     return errorState;
 }
